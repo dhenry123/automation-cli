@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+_info "This is the template of operation"
+_error "In this example, the environment variable MYREQUIREDVAR is required"
+
+_warn "Detected value of environment variable MYREQUIREDVAR: ${MYREQUIREDVAR}"

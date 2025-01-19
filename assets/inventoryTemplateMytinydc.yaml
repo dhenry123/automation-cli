@@ -1,0 +1,22 @@
+datacenterDescription:
+  name: ""
+  network: ""
+  domain: ""
+  emailCentralizer:
+    user: ""
+    password: ""
+  externalIpAddress: ""
+  internalIpAddress: ""
+  internalNetworkBroadcast: ""
+  internalNetworkSubnetMask: ""
+  internalDhcpStartingAddress: ""
+  internalDhcpEndingAddress: ""
+  hostnameInfraServer: ""
+  proxy: ""
+  pki:
+    EASYRSA_REQ_COUNTRY: ""
+    EASYRSA_REQ_PROVINCE: ""
+    EASYRSA_REQ_CITY: ""
+    EASYRSA_REQ_ORG: ""
+    EASYRSA_REQ_EMAIL: ""
+    EASYRSA_REQ_OU: ""

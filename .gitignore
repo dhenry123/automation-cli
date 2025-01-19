@@ -1,0 +1,5 @@
+node_modules
+dist
+.vscode
+automation-cli-arm64
+automation-cli-x64

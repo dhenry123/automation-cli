@@ -1,0 +1,40 @@
+comment: "#COMMENT#"
+# Attached scripts to run - scripts will be executed in this order
+scripts:
+  - "run.sh"
+# dependent packages needed to run the operation
+# eg: the script use the command 'jq', so 'jq' package will be installed before executing the script
+dependencies:
+#  - "jq"
+#  - "wget"
+#  - "curl"
+# Operation limited to hosts
+#limitHosts:
+#  - "server1"
+#  - "server2"
+# conditional execution could be $TEST==1 or #inv.key==xxxx ... environment comes from the control node
+# when:
+# copy files to target
+#copyTo:
+#  - src: './resources/template1'
+#    dest: '/tmp/template1'
+#  - src: './resources/myservice.service'
+#    dest: '/etc/systemd/system/myservice.service'
+#    chmod: "644"
+# The script needs some parameters ??
+parameters:
+  # operation could not be launch if required parameters are not set (-e or operationBook)
+  required:
+    MYREQUIREDVAR:
+      type: string
+      comment: Your comment
+      # eg: comes from the inventory file, the path is linked to the managed node: “$host”.
+      default: "#inv.$host.otherattribut"
+  optional:
+    MYOPTIONALVAR:
+      type: string
+      comment: "Comment no default value"
+    MYOPTIONALVARWITHDEFAULTVALUE:
+      type: number
+      comment: "Comment. Provided default value could be replaced by -e or operationBook environment value"
+      default: "Your default value"
