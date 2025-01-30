@@ -1,7 +1,5 @@
 # Automation-cli
 
-**Révision du code source** en cours de progression avant publication.
-
 automation-cli est un outil d'automatisation open source, pour Linux Debian©.
 
 Les tests unitaires et les tests d'intégration nécessitent la mise en place d'un contexte complet d'exécution (machines virtuelles, environnement Wireguard, environnement sudo...) **et ne sont pas fournis**.
@@ -14,8 +12,8 @@ Les PR devront par conséquent être très explicites, et mentionner les cas pr�
 
 ## Environnement de développement
 
-NodeJs: v20.18.1
-npm: v10.8.2
+NodeJs: v20.18.2
+npm: v10.9.0
 
 ### Installation
 
@@ -36,4 +34,4 @@ node dist/automation-cli.js run -h localhost -c "ls ~"
 
 ## Documentation utilisateur
 
-[située ici](https://automation-doc.mytinydc.com/), traduction "EN" en cours.
+[Située ici](https://automation-doc.mytinydc.com/).
