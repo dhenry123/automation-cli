@@ -13,8 +13,10 @@ import {
 	removeQuotesFrameString,
 	envSubst,
 	setNestedValue,
+	getNestedValue,
 } from "../../system";
 import { ExecBuiltinOperationParameters } from "../../types";
+import { emitDataOnStream } from "../execOperation";
 
 /**
  * SIMPLE method to update inventory yaml file from yaml operation
@@ -58,14 +60,42 @@ export const builtinUpdateInventory = async (
 
 			// --->try to resolve key with environment
 			// eg: key.key1.$ENVAR.key2 with ENVAR="test" => key.key1.test.key2
+			// and key.key1 = $ENVAR.jsonkey with $ENVAR='{"jsonkey":"jsonvalue"}
 			// inventoryKey
 			try {
 				const inventoryKey = removeQuotesFrameString(
 					envSubst(expl[0], parameters.environment, true)
 				);
-				const inventoryValue = removeQuotesFrameString(
-					envSubst(expl[1], parameters.environment, true)
-				);
+				// Value could be $ENV.attribut.attribut...
+				const items = expl[1].split(".");
+				let inventoryValue = "";
+				// Default is the first item
+				let keyValue = items[0] || "";
+				let varName = "";
+				// Detect environment variable only one
+				for (const item of items) {
+					if (/\$\{([A-Za-z0-9_]+)\}|\$([A-Za-z0-9_]+)/g.test(item)) {
+						keyValue = envSubst(item, parameters.environment, true);
+						varName = item;
+						break;
+					}
+				}
+				if (items.length > 1) {
+					const pathAttr = items.filter((e) => e != varName).join(".");
+					try {
+						const parsed = JSON.parse(keyValue);
+						inventoryValue = removeQuotesFrameString(
+							getNestedValue(parsed, pathAttr) as string
+						);
+						// eslint-disable-next-line @typescript-eslint/no-unused-vars
+					} catch (err) {
+						throw new Error(
+							`You're asking to extract key ${pathAttr} fron a string which not formated as JSON: ${keyValue}`
+						);
+					}
+				} else {
+					inventoryValue = removeQuotesFrameString(keyValue);
+				}
 				setNestedValue(content, inventoryKey, inventoryValue);
 				updatedAttributes.push(`${inventoryKey}: ${inventoryValue}`);
 				modified = true;
@@ -86,8 +116,14 @@ export const builtinUpdateInventory = async (
 			}
 		}
 		// save new inventory content
-		if (modified)
+		if (modified) {
 			inventoryWriteYamlContent(parameters.inventoryFile, content, yamlDoc);
+			emitDataOnStream(
+				`[INFO] ${parameters.inventoryFile} has been updated`,
+				stream,
+				false
+			);
+		}
 		stream.emit("close");
 		return;
 	} else {

@@ -50,9 +50,11 @@ _automation_cli() {
     elif [[ ${prev} == "audit" ]]; then
       opts="-failed -json"
     elif [[ ${prev} == "catop" ]]; then
-      opts="-f -h"
+      opts="-f -json --help"
+    elif [[ ${prev} == "serve" ]]; then
+      opts="-p -d --help"
     elif [[ ${prev} == "tree" ]]; then
-      opts="--help -dir -fp -d -nc -f -gc -h -i"
+      opts="-dir -fp -d -nc -f -gc -h -i --help"
     else
       opts="-h -i -eds -edm --help"
     fi

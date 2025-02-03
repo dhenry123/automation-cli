@@ -4,7 +4,7 @@
  * reviewed on 11/08/24
  */
 
-export const APPLICATION_VERSION = "20.0.40";
+export const APPLICATION_VERSION = "20.0.41";
 
 // Listening port receiving broadcast message from infra
 export const defaultIPortDiscoverInfra: number = 49125;

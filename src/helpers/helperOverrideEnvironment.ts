@@ -22,7 +22,7 @@ export const overrideOperationEnvironmentWithRegisteredVariables = (
 		);
 		if (!operationEnvironment) operationEnvironment = {};
 		for (const key of Object.getOwnPropertyNames(registeredVariables)) {
-			operationEnvironment[key] = JSON.stringify(registeredVariables[key]);
+			operationEnvironment[key] = registeredVariables[key];
 		}
 	}
 	return operationEnvironment || {};

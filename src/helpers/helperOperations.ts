@@ -248,7 +248,11 @@ export const registerContentToEnvironment = (
 	// AND to this environment process to be used by builtin
 	process.env[envVar[0]] = content;
 	logDebugEvent(
-		`registerContentToEnvironment: register value has been had to global registeredContent and to process.env`
+		`registerContentToEnvironment: register value added to global registeredContent and process.env => ${JSON.stringify(
+			registeredContent,
+			null,
+			2
+		)}`
 	);
 };
 
