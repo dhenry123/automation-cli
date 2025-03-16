@@ -130,7 +130,8 @@ export const runOperationsOnHosts = async (
 			optionsCommandLine.wireguardMatch
 		);
 		if (vpnPid) {
-			consoleLog(`[*] VPN is started (pid: ${vpnPid})`, "green");
+			if (!getProcessEnvValue("QUIETMODE"))
+				consoleLog(`[*] VPN is started (pid: ${vpnPid})`, "green");
 		}
 
 		// Registered variables collector

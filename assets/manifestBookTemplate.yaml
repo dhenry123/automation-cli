@@ -2,7 +2,7 @@ comment: "What does this operationBook..."
 operations:
   # operation
   - operation: "operation path"
-    comment: "What you want... Replaces the 'comment' value of operation at runtime"
+    comment: "What you want... Will override the 'comment' value of operation at runtime"
     register: "VARIABLENAME"
   # OR pure bash command
   - command: "ls /usr"

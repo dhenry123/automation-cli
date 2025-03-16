@@ -38,13 +38,13 @@ trap capture_command DEBUG
 # Trap to catch EXIT signal and print all changes at the end
 trap print_changes EXIT
 
-# log changes
+# Sampling function to demonstrate setting changes
 _change() {
   log_change
 }
 
-# Method to install Debian packages,
-# The apt-get finale command only retains packages that are not already installed
+# method to install Debian packages,
+# the apt-get finale command only retains packages that are not already installed
 function debInstall() {
   export DEBIAN_FRONTEND="noninteractive"
   if [ "$1" != "" ]; then
@@ -73,7 +73,7 @@ function debInstall() {
       $sudoPrefix apt-get -q update
       # ReApply
       set -e
-      # No quote, otherwise it will consider the content as a single package.
+      # No quote, otherwise it will consider the contents as a single package.
       $sudoPrefix apt-get -qy install ${toInstall}
       _change
     fi

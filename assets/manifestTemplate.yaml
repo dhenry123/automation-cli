@@ -28,7 +28,7 @@ parameters:
     MYREQUIREDVAR:
       type: string
       comment: Your comment
-      # eg: comes from the inventory file, the path is linked to the managed node: “$host”.
+      # environment comes from the control node: "$host"
       default: "#inv.$host.otherattribut"
   optional:
     MYOPTIONALVAR:
@@ -36,5 +36,5 @@ parameters:
       comment: "Comment no default value"
     MYOPTIONALVARWITHDEFAULTVALUE:
       type: number
-      comment: "Comment. Provided default value could be replaced by -e or operationBook environment value"
+      comment: "Comment. Default value is provided could be overridden by -e or operationBook"
       default: "Your default value"
