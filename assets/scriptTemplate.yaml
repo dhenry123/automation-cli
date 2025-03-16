@@ -3,4 +3,20 @@
 _info "This is the template of operation"
 _error "In this example, the environment variable MYREQUIREDVAR is required"
 
-_warn "Detected value of environment variable MYREQUIREDVAR: ${MYREQUIREDVAR}"
+_warn "Detected value of environment variable MYREQUIREDVAR: \${MYREQUIREDVAR}"
+
+# _jsonOutput is an internal bash method to build a basic JSON structure
+# composed of key=>value
+# This method build a JSON structure and display it on stdout
+#
+# Compose your object with some 'key:value' items
+declare -A my_array=(
+  ["key1"]="value1"
+  ["key2"]="value2"
+  ["key3"]="value3"
+)
+# Do not double quote $my_array, this is a bash array
+echo ""
+echo "Example of a JSON object built from the array: my_array"
+echo ""
+_jsonOutput my_array
