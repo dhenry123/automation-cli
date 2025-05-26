@@ -4,9 +4,9 @@
  * reviewed on 30/01/25
  */
 
-import { ExecBuiltinOperationParameters } from "../../types";
+import type { ExecBuiltinOperationParameters } from "../../types";
 import { builtinWaitForServerRestart } from "./waitForServerRestart";
-import { DuplexStream } from "../../DuplexStream";
+import type { DuplexStream } from "../../DuplexStream";
 import { emitDataOnStream } from "../execOperation";
 import {
 	isCidrNetwork,
@@ -15,8 +15,8 @@ import {
 import { logDebugEvent } from "../../log";
 import { builtinUpdateInventory } from "./updateInventory";
 import { builtinConfirm } from "./confirm";
-import { Spinner } from "../../spinner";
-import { ReadLine } from "readline";
+import type { Spinner } from "../../spinner";
+import type { ReadLine } from "node:readline";
 
 export const builtinSelector = async (
 	operationName: string,

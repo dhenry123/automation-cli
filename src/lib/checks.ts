@@ -4,13 +4,13 @@
  * reviewed on 11/08/24
  */
 
-import { chownSync, existsSync, mkdirSync } from "fs";
+import { chownSync, existsSync, mkdirSync } from "node:fs";
 import {
 	exitNodeJs,
 	getProcessEnvValue,
 	terminateAllProcesses,
 } from "./system";
-import { HostsType } from "./types";
+import type { HostsType } from "./types";
 import { legacyDirStorage, markProtectedServer } from "./constants";
 import { getOperationsPath, getOperationBooksPath } from "./filePathResolver";
 
@@ -46,8 +46,8 @@ export const checkDirectoryExists = (path: string) => {
 			// chown sudo_user
 			chownSync(
 				path,
-				parseInt(process.env.SUDO_UID),
-				parseInt(process.env.SUDO_GID)
+				Number.parseInt(process.env.SUDO_UID),
+				Number.parseInt(process.env.SUDO_GID)
 			);
 		}
 	}
@@ -68,7 +68,7 @@ export const checkIsOPSDirectory = () => {
 	) {
 		let opsDirectoryPath = `'${process.env.OPS}'`;
 		if (process.env.OPS === legacyDirStorage)
-			opsDirectoryPath += ` (default value when OPS is not set)`;
+			opsDirectoryPath += " (default value when OPS is not set)";
 		throw new Error(`This path: ${opsDirectoryPath} is not an OPSDirectory`);
 	}
 };

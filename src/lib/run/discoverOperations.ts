@@ -4,9 +4,9 @@
  * reviewed on 30/01/25
  */
 
-import { OptionValues } from "commander";
+import type { OptionValues } from "commander";
 import { logDebugEvent } from "../log";
-import {
+import type {
 	ManifestOptionalParameters,
 	ManifestParametersType,
 	Operation,
@@ -49,7 +49,7 @@ export const getOperationBaseFromCommanderOptions = (
 		when: "",
 	};
 	// command -c
-	if (commanderOptions.command && commanderOptions.command.trim()) {
+	if (commanderOptions.command?.trim()) {
 		logDebugEvent(
 			`Operation type discovered : 'command' Command Line (-c): ${commanderOptions.command}`
 		);
@@ -58,7 +58,7 @@ export const getOperationBaseFromCommanderOptions = (
 		return operationBase;
 	}
 	// operation -op
-	if (commanderOptions.operation && commanderOptions.operation.trim()) {
+	if (commanderOptions.operation?.trim()) {
 		logDebugEvent(
 			`Operation type discovered: 'operation' Command Line (-op): ${commanderOptions.operation}`
 		);
@@ -68,7 +68,7 @@ export const getOperationBaseFromCommanderOptions = (
 		return operationBase;
 	}
 	// operationBook -ob
-	if (commanderOptions.operationBook && commanderOptions.operationBook.trim()) {
+	if (commanderOptions.operationBook?.trim()) {
 		logDebugEvent(
 			`Operation type discovered: 'operationBook' Command Line (-ob): ${commanderOptions.operationBook}`
 		);
@@ -117,25 +117,24 @@ export const discoverOperationsFromCommanderOptions = async (
 					register: operationsList.register,
 				},
 			];
+		}
+		logDebugEvent(
+			`Starting discoverOperationsFromManifest with operationsList: ${JSON.stringify(
+				operationsList
+			)}`
+		);
+		///-------------------
+		// Try to edit script for operation with local editor (vi is default)
+		// only if operation || operationBook
+		///-------------------
+		if (
+			isCommanderOptionsIncludeEdit(commanderOptions) &&
+			(commanderOptions.operation || commanderOptions.operationBook)
+		) {
+			await openEditor(commanderOptions, operationsList);
 		} else {
-			logDebugEvent(
-				`Starting discoverOperationsFromManifest with operationsList: ${JSON.stringify(
-					operationsList
-				)}`
-			);
-			///-------------------
-			// Try to edit script for operation with local editor (vi is default)
-			// only if operation || operationBook
-			///-------------------
-			if (
-				isCommanderOptionsIncludeEdit(commanderOptions) &&
-				(commanderOptions.operation || commanderOptions.operationBook)
-			) {
-				await openEditor(commanderOptions, operationsList);
-			} else {
-				// get all operations as Object from manifest
-				return discoverOperationsFromManifest(operationsList, false);
-			}
+			// get all operations as Object from manifest
+			return discoverOperationsFromManifest(operationsList, false);
 		}
 	} else {
 		throw new Error(
@@ -157,7 +156,7 @@ export const discoverOperationsFromManifest = (
 
 	// get manifest file content as Operation Object
 	// operationBook type
-	if (operationBase.operationType == "operationBook") {
+	if (operationBase.operationType === "operationBook") {
 		// This operation resolve operationBook & check isExists
 		const operationBookYamlFile = resolveAbsolutePathOperationBookManifest(
 			operationBase.value
@@ -171,16 +170,15 @@ export const discoverOperationsFromManifest = (
 			operationBase.environmentFromCommanderOption || [],
 			toEdit
 		);
-	} else {
-		// type is : operation
-		const operationYamlFile = resolveAbsolutePathOperationManifest(
-			operationBase.value
-		);
-		const operationFromYaml = {
-			...getOperationManifestFileContent(operationYamlFile, toEdit),
-		};
-		return [getOperationAsObject(operationFromYaml, operationBase)];
 	}
+	// type is : operation
+	const operationYamlFile = resolveAbsolutePathOperationManifest(
+		operationBase.value
+	);
+	const operationFromYaml = {
+		...getOperationManifestFileContent(operationYamlFile, toEdit),
+	};
+	return [getOperationAsObject(operationFromYaml, operationBase)];
 };
 
 // name is not mandatory in manifest, when started from command line, name is build in OperationBase
@@ -231,6 +229,12 @@ export const resolveOperationsFromOperationBookManifest = (
 		)}`
 	);
 	let operations: Operation[] = [];
+	// Finale operations are overridden by base attributs:
+	// operationBook => operationBook
+	// operationBook => operation
+	// inherits are:
+	//  - when
+	//  - environment
 	for (const base of opsBase) {
 		if (base.command) {
 			operations.push({
@@ -249,7 +253,7 @@ export const resolveOperationsFromOperationBookManifest = (
 				limitHosts: base.limitHosts,
 			});
 		} else if (base.operation) {
-			let operation: Operation = { ...base };
+			let operationFromManifestAsObject: Operation = { ...base };
 			if (!isBuiltInOperation(base.operation)) {
 				const operationYamlFile = resolveAbsolutePathOperationManifest(
 					base.operation
@@ -260,55 +264,58 @@ export const resolveOperationsFromOperationBookManifest = (
 				// && could be overridden by user environement -e
 
 				// Building operation Object from operation yaml file
-				operation = getOperationAsObject(
+				operationFromManifestAsObject = getOperationAsObject(
 					getOperationManifestFileContent(operationYamlFile, toEdit),
 					{
 						name: base.operation,
 						environmentFromCommanderOption: environmentFromCommanderOption,
+						when: base.when || operationFromManifestAsObject.when, //operationBook overrides operation
 					} as OperationBase
 				);
 				// set environment found in operationBook overridden by command line (-e)
 				const myOp = {
-					...operation,
+					...operationFromManifestAsObject,
 					environment: getOperationEnvironmentFromParametersOptionalDefault(
-						(operation.parameters &&
-							(operation.parameters.optional as ManifestOptionalParameters)) ||
+						(operationFromManifestAsObject.parameters &&
+							(operationFromManifestAsObject.parameters
+								.optional as ManifestOptionalParameters)) ||
 							{},
 						environmentOverride(
 							base.environment || {},
 							environmentFromCommanderOption,
-							operation.parameters as ManifestParametersType
+							operationFromManifestAsObject.parameters as ManifestParametersType
 						)
 					),
 					register: base.register,
-					when: base.when || operation.when, // Book override operation
+					when: base.when || operationFromManifestAsObject.when, //operationBook overrides operation
 				};
 				operations.push(myOp);
 				continue;
-			} else {
-				// Builtin
-				if (!operation.parameters) operation.parameters = {};
-				operation.environment =
-					getOperationEnvironmentFromParametersOptionalDefault(
-						operation.parameters.optional as ManifestOptionalParameters,
-						convCommanderOptionsEnvVarToKeyValueObject(
-							environmentFromCommanderOption || []
-						)
-					);
-				operations.push({
-					...operation,
-					name: base.operation,
-					environment: environmentOverride(
-						operation.environment || {},
-						environmentFromCommanderOption,
-						operation.parameters as ManifestParametersType
-					),
-					register: base.register,
-					nolog: base.nolog,
-					when: base.when,
-					limitHosts: base.limitHosts,
-				});
 			}
+			// Builtin
+			if (!operationFromManifestAsObject.parameters)
+				operationFromManifestAsObject.parameters = {};
+			operationFromManifestAsObject.environment =
+				getOperationEnvironmentFromParametersOptionalDefault(
+					operationFromManifestAsObject.parameters
+						.optional as ManifestOptionalParameters,
+					convCommanderOptionsEnvVarToKeyValueObject(
+						environmentFromCommanderOption || []
+					)
+				);
+			operations.push({
+				...operationFromManifestAsObject,
+				name: base.operation,
+				environment: environmentOverride(
+					operationFromManifestAsObject.environment || {},
+					environmentFromCommanderOption,
+					operationFromManifestAsObject.parameters as ManifestParametersType
+				),
+				register: base.register,
+				nolog: base.nolog,
+				when: base.when,
+				limitHosts: base.limitHosts,
+			});
 		} else if (base.operationBook) {
 			const operationBookYamlFile = resolveAbsolutePathOperationBookManifest(
 				base.operationBook
@@ -316,16 +323,22 @@ export const resolveOperationsFromOperationBookManifest = (
 			const manifestContent = getOperationBookManifestFileContent(
 				operationBookYamlFile
 			);
+			// this manifest content inherit initial operationbook conditions
+			for (let i = 0; i < manifestContent.length; i++) {
+				if (base.when) manifestContent[i].when = base.when;
+			}
 			// OperationBook environment is overridden by CommanderOptions environnement
 			// concatenation of CommanderOptions environment(-e) & operationBookEnvironment
 			logDebugEvent(
 				`resolveOperationsFromOperationBookManifest - Preparing environment from Commander Options Environment: ${JSON.stringify(
-					resolveOperationsFromOperationBookManifest,
+					environmentFromCommanderOption,
 					null,
 					4
-				)} AND OperationBook environnment: ${
-					base.environment ? base.environment : {}
-				}`
+				)} AND OperationBook environnment: ${JSON.stringify(
+					base.environment ? base.environment : {},
+					null,
+					4
+				)}`
 			);
 			const operationBookEnvironment = environmentOverride(
 				base.environment ? base.environment : {},

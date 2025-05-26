@@ -4,14 +4,14 @@
  * reviewed on 30/01/25
  */
 
-import { existsSync, readFileSync } from "fs";
+import { existsSync, readFileSync } from "node:fs";
 import {
 	word_OperationBook_manifest_file,
 	word_Operation_manifest_file,
 } from "./constants";
 import { logDebugEvent } from "./log";
 import { parseDocument } from "yaml";
-import {
+import type {
 	Operation,
 	ManifestRunnableType,
 	ManifestParametersType,
@@ -19,7 +19,7 @@ import {
 	ManifestOptionalParameters,
 	KeyStringValue,
 } from "./types";
-import { dirname } from "path";
+import { dirname } from "node:path";
 import { consoleErr, consoleLog } from "../helpers/helperUI";
 
 /**
@@ -117,7 +117,7 @@ export const getOperationManifestFileContent = (
 	const operation = parseDocument(content).toJSON() as Operation;
 
 	// Compatibility old manifests : will be removed in the future
-	if (operation && operation.script) {
+	if (operation?.script) {
 		consoleErr(
 			`WARN: Manifest file: ${operationYamlFile} contains 'script' attributes, must be replaced by 'scripts'. The attribute 'script' will be remove in the future.\n`
 		);

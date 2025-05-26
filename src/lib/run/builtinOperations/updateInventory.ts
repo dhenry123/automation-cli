@@ -4,7 +4,7 @@
  * reviewed on 12/07/2024
  */
 
-import { DuplexStream } from "../../DuplexStream";
+import type { DuplexStream } from "../../DuplexStream";
 import {
 	inventoryGetContent,
 	inventoryWriteYamlContent,
@@ -15,7 +15,7 @@ import {
 	setNestedValue,
 	getNestedValue,
 } from "../../system";
-import { ExecBuiltinOperationParameters } from "../../types";
+import type { ExecBuiltinOperationParameters } from "../../types";
 import { emitDataOnStream } from "../execOperation";
 
 /**
@@ -42,7 +42,7 @@ export const builtinUpdateInventory = async (
 		const updatedAttributes: string[] = [];
 		for (const line of parameters.values) {
 			if (typeof line !== "string") {
-				stream.emit("close", new Error(`Values item must be string type`));
+				stream.emit("close", new Error("Values item must be string type"));
 				return;
 			}
 			// To update inventory we need key=value
@@ -126,13 +126,12 @@ export const builtinUpdateInventory = async (
 		}
 		stream.emit("close");
 		return;
-	} else {
-		stream.emit(
-			"close",
-			new Error(
-				"The inventory has NOT been updated, because operation doesn't include attribute 'values'. eg: value:\n  key1.key2.key3=[value which could be environment variable name]"
-			)
-		);
-		return;
 	}
+	stream.emit(
+		"close",
+		new Error(
+			"The inventory has NOT been updated, because operation doesn't include attribute 'values'. eg: value:\n  key1.key2.key3=[value which could be environment variable name]"
+		)
+	);
+	return;
 };

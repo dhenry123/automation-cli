@@ -4,11 +4,11 @@
  * reviewed on 30/01/25
  */
 
-import { OptionValues } from "commander";
-import { existsSync, statSync } from "fs";
+import type { OptionValues } from "commander";
+import { existsSync, statSync } from "node:fs";
 import { getProcessEnvValue, getSubdirectories } from "./system";
 import { consoleLog } from "../helpers/helperUI";
-import { dirname } from "path";
+import { dirname } from "node:path";
 import { logDebugEvent } from "./log";
 import Table from "cli-table3";
 import colors from "colors";
@@ -18,7 +18,7 @@ import {
 	getMessageNumberOfOperations,
 } from "../helpers/helperOperations";
 import { getOperationManifestFileContent } from "./manifests";
-import { OperationCatalogItemType } from "./types";
+import type { OperationCatalogItemType } from "./types";
 
 export const buildCatalogOperations = (commanderOptions: OptionValues) => {
 	// Display size has minimum to be used with pipe
@@ -68,7 +68,7 @@ export const buildCatalogOperations = (commanderOptions: OptionValues) => {
 		const manifest = `${operationDir}/manifest.yaml`;
 		logDebugEvent(`Manifest to inspect: ${manifest}`);
 		if (existsSync(manifest)) {
-			logDebugEvent(`Manifest exists`);
+			logDebugEvent("Manifest exists");
 			countOperations++;
 
 			// Start new table

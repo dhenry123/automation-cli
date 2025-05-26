@@ -37,7 +37,7 @@ import {
 	getSubdirectories,
 	terminateAllProcesses,
 } from "../lib/system";
-import {
+import type {
 	Operation,
 	HostsType,
 	KeyStringValue,
@@ -59,8 +59,8 @@ import {
 	resolveInventoryAttributeValue,
 } from "../lib/inventory";
 import { getOperationsPath } from "../lib/filePathResolver";
-import { Interface } from "readline";
-import { Spinner } from "../lib/spinner";
+import type { Interface } from "node:readline";
+import type { Spinner } from "../lib/spinner";
 
 /**
  * test if host is localhost - no need to start ssh connection
@@ -180,7 +180,7 @@ export const registerContentToEnvironment = (
 ) => {
 	// Empty
 	logDebugEvent(
-		`registerContentToEnvironment: Not content to save in registeredVariable`
+		"registerContentToEnvironment: Not content to save in registeredVariable"
 	);
 	if (!envVarName || !envVarName.trim()) return;
 
@@ -285,7 +285,7 @@ export const waitForOperationCompletedOnAllHosts = (
 	return new Promise((resolve) => {
 		const checkInterval = setInterval(() => {
 			// > because executed every n periods, complete.current could be overridden by error process
-			if (hostsListCompleted.length == initHostsToExec.length) {
+			if (hostsListCompleted.length === initHostsToExec.length) {
 				clearInterval(checkInterval);
 				resolve(null);
 			}
@@ -518,14 +518,14 @@ export const builtinGetParameterValues = (
 	operationValues?: (string | KeyStringNumberValue)[]
 ): BuiltinValuesToObject => {
 	if (!host || !host.trim())
-		throw new Error(`Host (host:sshport) is not provided`);
+		throw new Error("Host (host:sshport) is not provided");
 	const explHost = host.split(":");
 	const hostHost = explHost[0];
 	if (!hostHost || !hostHost.trim())
-		throw new Error(`Host (address:sshport) address is not provided`);
-	const hostPort = parseInt(explHost[1]);
-	if (isNaN(hostPort) && !isLocalhost(host))
-		throw new Error(`Host (address:sshport) ssh port is not provided`);
+		throw new Error("Host (address:sshport) address is not provided");
+	const hostPort = Number.parseInt(explHost[1]);
+	if (Number.isNaN(hostPort) && !isLocalhost(host))
+		throw new Error("Host (address:sshport) ssh port is not provided");
 	const response: BuiltinValuesToObject = {
 		host: hostHost,
 		port: hostPort,
@@ -588,7 +588,7 @@ export const updateChangesCounters = (
 	if (regExpChangeTotal.test(line.message)) {
 		const totalChanges = line.message.replace(regExpChangeTotal, "$1");
 		if (totalChanges && isInteger(totalChanges))
-			hostCounterChanges[host.userInput] += parseInt(totalChanges);
+			hostCounterChanges[host.userInput] += Number.parseInt(totalChanges);
 	}
 };
 
@@ -606,11 +606,10 @@ export const resolveLocalSrcFileToCopy = (
 		const homeDirectory = getUserHomeDirectory();
 		if (homeDirectory) {
 			return value.replace(regExpHomeDirectory, homeDirectory);
-		} else {
-			throw new Error(
-				`Path provided starting with home directory shortcut but environment variable HOME is not set, impossible to continue`
-			);
 		}
+		throw new Error(
+			"Path provided starting with home directory shortcut but environment variable HOME is not set, impossible to continue"
+		);
 	}
 	// Relative add operation path
 	if (regExpRelative.test(value)) value = value.replace(regExpRelative, "");
@@ -689,26 +688,24 @@ export const getCommandToRunOperation = (
 	// for helper: operationFullPath is concatenation of opsPath and relative operation path
 	// so prefix to give in command line is relative to OPS directory
 	// [opsPath]/Operation => remove [opsPath]/
-	const prefixOperation = (
-		operationFullPath.replace(
-			new RegExp(`${getProcessEnvValue("OPS")}/operations`),
-			""
-		) + "/"
-	).replace(/^\/*/, "");
+	const prefixOperation = `${operationFullPath.replace(
+		new RegExp(`${getProcessEnvValue("OPS")}/operations`),
+		""
+	)}/`.replace(/^\/*/, "");
 	// Parameters
 	const environment: string[] = [];
 	const manifest = getOperationManifestFileContent(
 		`${operationFullPath}/${operationName}/manifest.yaml`,
 		false
 	);
-	if (manifest.parameters && manifest.parameters.required) {
+	if (manifest.parameters?.required) {
 		for (const envVar of Object.getOwnPropertyNames(
 			manifest.parameters.required
 		)) {
 			if (!inventory) environment.push(`-e ${envVar}="required"`);
 		}
 	}
-	if (manifest.parameters && manifest.parameters.optional) {
+	if (manifest.parameters?.optional) {
 		for (const envVar of Object.getOwnPropertyNames(
 			manifest.parameters.optional
 		)) {
@@ -728,7 +725,7 @@ export const getCommandToRunOperation = (
 		}
 	}
 	return `OPS="${
-		process.env["OPS"]
+		process.env.OPS
 	}" automation-cli run -op "${prefixOperation}${operationName}" ${environment.join(
 		" "
 	)}${inventory ? ` -i "${inventory}"` : ""} -h "${
@@ -743,6 +740,24 @@ export const getMessageNumberOfOperations = (
 	return `Number of operations in directory ${opsPath}: ${value}`;
 };
 
+/**
+ * to resolve string like : {"password":"newpassword","login":"newlogin"}.password
+ */
+const tryToParseAsJson = (resolved: string): string => {
+	if (resolved.match(/^\{/)) {
+		//console.log("match string which looks like JSON");
+		//trying to split
+		const jsonString = resolved.replace(/(^\{.*})(.*)$/, "$1");
+		try {
+			const json = JSON.parse(jsonString);
+			const rest = resolved.replace(/^.*}/, "").trim();
+			return getNestedValue(json, rest) as string;
+		} catch {
+			// Do nothing
+		}
+	}
+	return resolved;
+};
 /**
  * test environment condition: $MYVAR==2
  * is $MYVAR in environment ?
@@ -767,20 +782,20 @@ export const isWhenConditionMatch = (
 		logDebugEvent(
 			`Trying to resolve ${split[0]} in ${JSON.stringify(extendedEnvironment)}`
 		);
-		const resolved = envSubst(
+		let resolved = envSubst(
 			split[0],
 			extendedEnvironment as KeyStringValue //compatible
 		);
+		resolved = tryToParseAsJson(resolved);
 		logDebugEvent(`Resolved value: ${resolved}`);
 		// compare removing "" from value
-		if (resolved == removeQuotesFrameString(split[1].trim())) {
+		if (resolved === removeQuotesFrameString(split[1].trim())) {
 			//no check on type, envvar is string | number
-			logDebugEvent(`Condition matches`);
+			logDebugEvent("Condition matches");
 			return true;
-		} else {
-			logDebugEvent(`Condition doesn't match`);
-			return false;
 		}
+		logDebugEvent("Condition doesn't match");
+		return false;
 	}
 	// !=
 	if (/^\$.*!=/.test(condition)) {
@@ -788,20 +803,20 @@ export const isWhenConditionMatch = (
 		logDebugEvent(
 			`Trying to resolve ${split[0]} in ${JSON.stringify(extendedEnvironment)}`
 		);
-		const resolved = envSubst(
+		let resolved = envSubst(
 			split[0],
 			extendedEnvironment as KeyStringValue //compatible
 		);
+		resolved = tryToParseAsJson(resolved);
 		logDebugEvent(`Resolved value: ${resolved}`);
 		// compare removing "" from value
-		if (resolved != removeQuotesFrameString(split[1].trim())) {
+		if (resolved !== removeQuotesFrameString(split[1].trim())) {
 			//no check on type, envvar is string | number
-			logDebugEvent(`Condition matches`);
+			logDebugEvent("Condition matches");
 			return true;
-		} else {
-			logDebugEvent(`Condition doesn't match`);
-			return false;
 		}
+		logDebugEvent("Condition doesn't match");
+		return false;
 	}
 	if (inventoryFile) {
 		let inventoryContent = null;
@@ -827,14 +842,13 @@ export const isWhenConditionMatch = (
 				environment,
 				inventoryContent
 			);
-			if (resolved == removeQuotesFrameString(split[1].trim())) {
+			if (resolved === removeQuotesFrameString(split[1].trim())) {
 				//no check on type, envvar is string | number
-				logDebugEvent(`Condition matches`);
+				logDebugEvent("Condition matches");
 				return true;
-			} else {
-				logDebugEvent(`Condition doesn't match`);
-				return false;
 			}
+			logDebugEvent("Condition doesn't match");
+			return false;
 		}
 		if (/^#inv\..*!=/.test(condition)) {
 			const split = condition.split("!=");
@@ -843,14 +857,13 @@ export const isWhenConditionMatch = (
 				environment,
 				inventoryContent
 			);
-			if (resolved != removeQuotesFrameString(split[1].trim())) {
+			if (resolved !== removeQuotesFrameString(split[1].trim())) {
 				//no check on type, envvar is string | number
-				logDebugEvent(`Condition matches`);
+				logDebugEvent("Condition matches");
 				return true;
-			} else {
-				logDebugEvent(`Condition doesn't match`);
-				return false;
 			}
+			logDebugEvent("Condition doesn't match");
+			return false;
 		}
 	}
 	return false;
@@ -867,9 +880,7 @@ export const extractOperationNameFromFullOperationDirectory = (
 ) => {
 	return operationPath
 		.replace(
-			new RegExp(
-				`${getOPSBasePath()}/operations`.replace(new RegExp("/", "g"), "\\/")
-			),
+			new RegExp(`${getOPSBasePath()}/operations`.replace(/\//g, "\\/")),
 			""
 		)
 		.replace(/^\/*/, "");
@@ -897,9 +908,8 @@ export const getOperationsManifestPathList = (
 			}
 		}
 		return list;
-	} else {
-		throw new Error(`${getProcessEnvValue("OPS")} is not OPSDirectory`);
 	}
+	throw new Error(`${getProcessEnvValue("OPS")} is not OPSDirectory`);
 };
 
 export const getOPSDirectoryOperationsPath = (): string[] => {
@@ -931,7 +941,7 @@ export const getOPSDirectoryOperationBooksPath = (): string[] => {
  * to call when activity from operation is received
  */
 export const incrementHostActivity = () => {
-	logDebugEvent(`incrementing host activity (TIMEOFLASTHOSTACTIVITY)`);
+	logDebugEvent("incrementing host activity (TIMEOFLASTHOSTACTIVITY)");
 	process.env.TIMEOFLASTHOSTACTIVITY = new Date().valueOf().toString();
 };
 
@@ -959,7 +969,7 @@ export const activateAutoKillHostNoActivity = (
 	setInterval(() => {
 		if (
 			new Date().valueOf() >
-			parseInt(getProcessEnvValue("TIMEOFLASTHOSTACTIVITY")) +
+			Number.parseInt(getProcessEnvValue("TIMEOFLASTHOSTACTIVITY")) +
 				60 * timeout * 1000
 		) {
 			terminateAllProcesses(
