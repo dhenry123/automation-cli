@@ -6,19 +6,19 @@
 
 //CVE-2024-29415 - @todo replace this npm package
 import ip from "ip";
-import net from "net";
-import { DuplexStream } from "../lib/DuplexStream";
+import net from "node:net";
+import type { DuplexStream } from "../lib/DuplexStream";
 import { inventoryTryResolvKey } from "../lib/inventory";
 import { logDebugEvent } from "../lib/log";
 import { envSubst } from "../lib/system";
-import { ExecBuiltinOperationParameters } from "../lib/types";
+import type { ExecBuiltinOperationParameters } from "../lib/types";
 import { emitDataOnStream } from "../lib/run/execOperation";
 import { netWorkV4PrivateNetworksRanges } from "../lib/constants";
 
 export const isCIdr = (e: string): boolean => {
 	const split = e.trim().split("/");
 	if (split.length === 2) {
-		const mask = parseInt(split[1]);
+		const mask = Number.parseInt(split[1]);
 		if (mask >= 1 && mask <= 32) return true;
 	}
 	return false;
@@ -47,7 +47,7 @@ export const isPrivateCidrNetwork = async (
 		return;
 	}
 	if (typeof parameters.values[0] !== "string") {
-		stream.emit("close", new Error(`Values item must be string type`));
+		stream.emit("close", new Error("Values item must be string type"));
 		return;
 	}
 
@@ -71,7 +71,8 @@ export const isPrivateCidrNetwork = async (
 			)
 		);
 		return;
-	} else if (!isPrivateNetwork(privateCidrNetwork)) {
+	}
+	if (!isPrivateNetwork(privateCidrNetwork)) {
 		stream.emit(
 			"close",
 			new Error(
@@ -81,14 +82,13 @@ export const isPrivateCidrNetwork = async (
 			)
 		);
 		return;
-	} else {
-		emitDataOnStream(
-			`[INFO] The network provided: ${privateCidrNetwork} is in CIDR format and private`,
-			stream,
-			false
-		);
-		stream.emit("close");
 	}
+	emitDataOnStream(
+		`[INFO] The network provided: ${privateCidrNetwork} is in CIDR format and private`,
+		stream,
+		false
+	);
+	stream.emit("close");
 };
 
 export const isCidrNetwork = async (
@@ -120,14 +120,13 @@ export const isCidrNetwork = async (
 			)
 		);
 		return;
-	} else {
-		emitDataOnStream(
-			`[INFO] This network provided: ${privateCidrNetwork} is in CIDR format`,
-			stream,
-			false
-		);
-		stream.emit("close");
 	}
+	emitDataOnStream(
+		`[INFO] This network provided: ${privateCidrNetwork} is in CIDR format`,
+		stream,
+		false
+	);
+	stream.emit("close");
 };
 
 export const checkConnection = (
@@ -177,9 +176,9 @@ export const controlNodeGetTcpFreePort = (): Promise<number> => {
 		const srv = net.createServer();
 		srv.listen(0, () => {
 			let port = -1;
-			if (srv && srv.address()) {
+			if (srv?.address()) {
 				const srvDefAddr = JSON.parse(JSON.stringify(srv.address()));
-				if (srvDefAddr && srvDefAddr.port) port = srvDefAddr.port;
+				if (srvDefAddr?.port) port = srvDefAddr.port;
 			}
 			srv.close(() => res(port));
 		});

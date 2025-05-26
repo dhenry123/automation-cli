@@ -4,8 +4,8 @@
  * reviewed on 30/01/25
  */
 
-import { Command } from "commander";
-import readline from "node:readline";
+import type { Command } from "commander";
+import type readline from "node:readline";
 import {
 	MINUTESNOACTIVITYBEFORESHUTDOWN,
 	messageProcessCanceledByUser,
@@ -15,7 +15,7 @@ import { reportListHosts, reportOperationsToRun } from "../reports";
 import { discoverOperationsFromCommanderOptions } from "../run/discoverOperations";
 import { Spinner } from "../spinner";
 import { terminateAllProcesses, exitNodeJs } from "../system";
-import { Operation, HostsType } from "../types";
+import type { Operation, HostsType } from "../types";
 import { checkIsOPSDirectory } from "../checks";
 import { buildHostList } from "../../helpers/helperOperations";
 import { checkOperationsBeforeRunning } from "../run/checkOperations";
@@ -43,7 +43,7 @@ export const commandRun = (program: Command, rl: readline.Interface) => {
 		process.env.USER = execSync("whoami").toString().trim();
 
 	if (process.env.USER.trim() === "")
-		exitNodeJs(1, `Who are you ???, Impossible to continue`);
+		exitNodeJs(1, "Who are you ???, Impossible to continue");
 
 	program
 		.command("run")

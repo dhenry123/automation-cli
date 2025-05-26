@@ -11,7 +11,7 @@ import {
 	regExpYamlExtentionFilename,
 } from "../constants";
 import { getOperationBookManifestFileContent } from "../manifests";
-import { SecurityAuditResult } from "../types";
+import type { SecurityAuditResult } from "../types";
 
 export const securityAuditOperationBook = (
 	operationBookPath: string,

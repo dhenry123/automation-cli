@@ -4,12 +4,18 @@
  * reviewed on 30/01/25
  */
 
-import crypto from "crypto";
-import { Dirent, existsSync, readdirSync, realpathSync, statSync } from "fs";
+import crypto from "node:crypto";
+import {
+	type Dirent,
+	existsSync,
+	readdirSync,
+	realpathSync,
+	statSync,
+} from "node:fs";
 import { closeVpnConnection } from "./vpn";
-import { Spinner } from "./spinner";
-import { ReadLine } from "readline";
-import { AnyObject, KeyStringValue } from "./types";
+import type { Spinner } from "./spinner";
+import type { ReadLine } from "node:readline";
+import type { AnyObject, KeyStringValue } from "./types";
 import {
 	consoleErr,
 	consoleLog,
@@ -23,7 +29,7 @@ import {
 	sshDefaultPrivateKeyFiles,
 	regExpHomeDirectory,
 } from "./constants";
-import { join } from "path";
+import { join } from "node:path";
 import { inventorySetSshOption } from "./inventory";
 
 export const mkTemp = (prefix?: string) => {
@@ -52,7 +58,7 @@ export const exitNodeJs = (code?: number, message?: string) => {
 		} else {
 			// No screen (cron, product brand display) - except if Silent mode :)
 			if (!getProcessEnvValue("SILENTMODE") && !getProcessEnvValue("QUIETMODE"))
-				consoleLog(`--:-- [Mytinydc - automation-cli] --:--`);
+				consoleLog("--:-- [Mytinydc - automation-cli] --:--");
 		}
 		consoleWarnDebugActivated();
 		// Used by the test process
@@ -62,7 +68,7 @@ export const exitNodeJs = (code?: number, message?: string) => {
 };
 
 export const terminateAllProcesses = async (
-	exitCode: number = 0,
+	exitCode = 0,
 	errorMessage?: string,
 	rlHandler?: ReadLine,
 	spinnerHandler?: Spinner,
@@ -85,21 +91,21 @@ export const terminateAllProcesses = async (
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const getDefaultSshPrivateKey = (commanderOptions: any) => {
 	logDebugEvent(
-		`getDefaultSshPrivateKey: Trying with option command line -sshpk`
+		"getDefaultSshPrivateKey: Trying with option command line -sshpk"
 	);
 	// Could be provided by user in command line Options : commanderOptions.sshPrivateKey
 	// try with inventory
 	if (commanderOptions.inventoryFile) {
-		logDebugEvent(`getDefaultSshPrivateKey: Trying with provided inventory`);
+		logDebugEvent("getDefaultSshPrivateKey: Trying with provided inventory");
 		inventorySetSshOption(commanderOptions);
 	} else {
-		logDebugEvent(`getDefaultSshPrivateKey: inventory file not provided`);
+		logDebugEvent("getDefaultSshPrivateKey: inventory file not provided");
 	}
 	// Finish with default user ssh pk
 	if (!commanderOptions.sshPrivateKey) {
 		const homeDirectory = `${getUserHomeDirectory()}/.ssh`;
 		logDebugEvent(
-			`getDefaultSshPrivateKey: Trying with get user default ssh private key from home directory`
+			"getDefaultSshPrivateKey: Trying with get user default ssh private key from home directory"
 		);
 		if (homeDirectory && existsSync(homeDirectory)) {
 			for (const file of sshDefaultPrivateKeyFiles) {
@@ -139,7 +145,7 @@ export const realAbsolutePath = (value: string): string => {
 			value = value.replace(regExpHomeDirectory, homeDirectory);
 		} else {
 			throw new Error(
-				`Path provided starting with home directory shortcut but environment variable HOME is not set, impossible to continue`
+				"Path provided starting with home directory shortcut but environment variable HOME is not set, impossible to continue"
 			);
 		}
 	}
@@ -198,11 +204,11 @@ export const getNestedValue = (
 		// Convert numeric keys for array access.
 		if (acc && typeof acc === "object" && key in acc) {
 			return acc[key];
-		} else if (acc && !isNaN(Number(key))) {
-			return acc[Number(key)];
-		} else {
-			return ""; // Return undefined if path does not exist.
 		}
+		if (acc && !Number.isNaN(Number(key))) {
+			return acc[Number(key)];
+		}
+		return ""; // Return undefined if path does not exist.
 	}, obj);
 };
 
@@ -274,22 +280,22 @@ export const envSubst = (
 	const form1 = template.replace(/\$\{([A-Za-z0-9_]+)\}/g, (_, key) => {
 		if (key in environment) {
 			return removeQuotesFrameString(environment[key]);
-		} else if (trowException) {
-			throw new Error(`${key} was not found in the provided environment`);
-		} else {
-			// eslint-disable-next-line no-useless-escape
-			return `$\{${removeQuotesFrameString(key)}\}`;
 		}
+		if (trowException) {
+			throw new Error(`${key} was not found in the provided environment`);
+		}
+		// eslint-disable-next-line no-useless-escape
+		return `$\{${removeQuotesFrameString(key)}\}`;
 	});
 	// Form 2 : $XXX
 	return form1.replace(/\$([A-Za-z0-9_]+)/g, (_, key) => {
 		if (key in environment) {
 			return removeQuotesFrameString(environment[key]);
-		} else if (trowException) {
-			throw new Error(`${key} was not found in the provided environment`);
-		} else {
-			return `$${removeQuotesFrameString(key)}`;
 		}
+		if (trowException) {
+			throw new Error(`${key} was not found in the provided environment`);
+		}
+		return `$${removeQuotesFrameString(key)}`;
 	});
 };
 /**
@@ -328,6 +334,7 @@ export const sleep = (ms: number) => {
 export const removeQuotesFrameString = (value: string) => {
 	// Remove outer matching quotes only if they are the same
 	if (typeof value === "object") return value;
+	if (typeof value === "boolean") return value;
 	if (
 		(value && value.startsWith('"') && value.endsWith('"')) ||
 		(value.startsWith("'") && value.endsWith("'"))

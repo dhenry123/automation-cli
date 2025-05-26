@@ -274,9 +274,8 @@ export const checkIsInventoryNeededInOperation = (
 	operations: Operation[]
 ) => {
 	let idx = 0;
-	const isCommanderOptionInventoryFileProvided = commanderOptions.inventoryFile
-		? true
-		: false;
+	const isCommanderOptionInventoryFileProvided =
+		!!commanderOptions.inventoryFile;
 	// #inv. present in operation (environnement)
 	for (const operation of operations) {
 		try {

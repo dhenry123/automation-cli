@@ -4,7 +4,7 @@
  * reviewed on 30/01/25
  */
 
-import { ClientErrorExtensions } from "ssh2";
+import type { ClientErrorExtensions } from "ssh2";
 import {
 	incrementHostActivity,
 	interpolateInventoryValues,
@@ -32,7 +32,7 @@ import {
 import { inventoryGetVpnConnectionInfos } from "../inventory";
 import { logDebugEvent, logGetHostLogFullPath, logHostEvent } from "../log";
 import { getProcessEnvValue } from "../system";
-import {
+import type {
 	ExecOperationHostErrorType,
 	ExecOperationPromiseType,
 	HostsType,
@@ -44,7 +44,7 @@ import {
 	VpnConnectionInfos,
 } from "../types";
 import { emitDataOnStream, logShellExecutionCompleted } from "./execOperation";
-import { Spinner } from "../spinner";
+import type { Spinner } from "../spinner";
 
 export const stepCollectVpnInfosFromInventory = (
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any

@@ -6,13 +6,13 @@
 
 import { logDebugEvent } from "../log";
 import { emitDataOnStream } from "./execOperation";
-import { HostsType, Operation } from "../types";
+import type { HostsType, Operation } from "../types";
 import { DuplexStream } from "../DuplexStream";
-import { ChildProcessWithoutNullStreams } from "child_process";
+import type { ChildProcessWithoutNullStreams } from "node:child_process";
 import { consoleLog } from "../../helpers/helperUI";
 import { builtinSelector } from "./builtinOperations/selector";
-import { Spinner } from "../spinner";
-import { ReadLine } from "readline";
+import type { Spinner } from "../spinner";
+import type { ReadLine } from "node:readline";
 
 // Builtin operation
 export const execOperationBuiltin = (
@@ -25,7 +25,7 @@ export const execOperationBuiltin = (
 ) => {
 	if (!operation.operation)
 		throw new Error(
-			`[ERROR SERIOUS] why there is not operation.operation at this level`
+			"[ERROR SERIOUS] why there is not operation.operation at this level"
 		);
 	const stream = new DuplexStream();
 	stream.on("data", (data) => {
